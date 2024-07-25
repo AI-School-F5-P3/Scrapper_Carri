@@ -26,6 +26,8 @@ services:
       - .env  # Si el proyecto de Scrapy necesita variables de entorno
     depends_on:
       - postgres
+    volumes:
+      - ./logs:/app/logs
     networks:
       - mynetwork
 

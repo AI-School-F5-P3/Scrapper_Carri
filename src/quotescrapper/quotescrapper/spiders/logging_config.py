@@ -7,8 +7,10 @@ def setup_logger():
    
     # Se ha configurado el nivel de logging a DEBUG para capturar todos los niveles de log (DEBUG, INFO, WARNING, ERROR, CRITICAL).
 
+    log_file_path = '/app/logs/app.log'
+
     # Crear un gestor de archivo con encoding UTF-8
-    fh = logging.FileHandler('logs_srapper.log', encoding='utf-8')
+    fh = logging.FileHandler(log_file_path, encoding='utf-8')
     fh.setLevel(logging.DEBUG)
     
     # Crear un gestor de consola ('ch' console handler) para mostrar también los mensajes en la consola.
