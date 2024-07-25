@@ -1,6 +1,5 @@
 import psycopg2
 import os
-import sys
 import scrapy
 import html
 import time
@@ -9,10 +8,7 @@ from scrapy import signals
 from scrapy.crawler import CrawlerProcess
 from scrapy.signalmanager import dispatcher
 from dotenv import load_dotenv
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../../')))
-
-from logging_config import logger
+#from logging_config import logger
 
 
 #Base de datos
@@ -67,12 +63,12 @@ class QuotegetterSpider(scrapy.Spider):
             request.meta['author_name'] = author
             request.meta['tags'] = tags
             yield request
-            logger.info(f'Extraido ítem con spider {request}')
+            #logger.info(f'Extraido ítem con spider {request}')
 
         next_page = response.css('li.next a::attr(href)').get()
         if next_page is not None:
             yield response.follow(next_page, self.response_parser)
-            logger.info('Cambio de página')
+            #logger.info('Cambio de página')
 
     def parse_author_about(self, response):
         '''
@@ -102,7 +98,7 @@ def quotes_spider_result():
 
     def crawler_results(item):
         quotes_results.append(item)
-        logger.info('Guardado resultado')
+        #logger.info('Guardado resultado')
 
     dispatcher.connect(crawler_results, signal=signals.item_scraped)
     crawler_process = CrawlerProcess()
@@ -121,8 +117,8 @@ def insert_data_to_db(quotes_data):
         dbname=DB_NAME,
         user=DB_USER,
         password=DB_PASSWORD,
-        host=DB_HOST,
-        port=DB_PORT
+        host='quotes-db',
+        port=5432
     )
     cur = conn.cursor()
 
@@ -153,16 +149,16 @@ def insert_data_to_db(quotes_data):
             author_id = cur.fetchone()
             if author_id:
                 author_ids[author] = author_id[0]
-                logger.info(f'Añadido {author} correctamente')
+                #logger.info(f'Añadido {author} correctamente')
             else:
                 # Si falla la inserción se busca el id por nombre del autor.
                 cur.execute(f"SELECT id FROM {SCHEMA_NAME}.author WHERE author = %s", (author,))
                 author_id = cur.fetchone()
                 if author_id:
                     author_ids[author] = author_id[0]
-                    logger.info(f'Añadido {author} correctamente')
+                    #logger.info(f'Añadido {author} correctamente')
                 else:
-                    logger.error(f'No puede recuperarse el ID de: {author}')
+                    #logger.error(f'No puede recuperarse el ID de: {author}')
                     raise Exception(f"No puede recuperarse el ID de: {author}")
                     
 
@@ -179,16 +175,16 @@ def insert_data_to_db(quotes_data):
                 """, (tag,))
                 tag_id = cur.fetchone()
                 if tag_id:
-                    logger.info(f'Añadidas tags correctamente')
+                    #logger.info(f'Añadidas tags correctamente')
                     tag_ids[tag] = tag_id[0]
                 else:
                     cur.execute(f"SELECT id FROM {SCHEMA_NAME}.tag WHERE tag = %s", (tag,))
                     tag_id = cur.fetchone()
                     if tag_id:
                         tag_ids[tag] = tag_id[0]
-                        logger.info(f'Añadidas tags correctamente')
+                        #logger.info(f'Añadidas tags correctamente')
                     else:
-                        logger.error(f'No puede recuperarse el ID de: {tag}')
+                        #logger.error(f'No puede recuperarse el ID de: {tag}')
                         raise Exception(f"No puede recuperarse el ID de: {tag}")
 
     # Insert quotes
@@ -212,16 +208,16 @@ def insert_data_to_db(quotes_data):
             """, (quote_id, tag_id))
 
     conn.commit()
-    logger.info('Commit realizado correctamete')
+    #logger.info('Commit realizado correctamete')
     cur.close()
     conn.close()
-    logger.info('Cerrada la conexion a la base de datos')
+    #logger.info('Cerrada la conexion a la base de datos')
 
 def funcion_base():
-    logger.info('Inicio de scraping y actualización de db')
+    #logger.info('Inicio de scraping y actualización de db')
     quotes_data = quotes_spider_result()
     insert_data_to_db(quotes_data)
-    logger.info('Scraping y actualización de la base de datos completada')
+    #logger.info('Scraping y actualización de la base de datos completada')
 
 def job():
     '''
@@ -230,11 +226,11 @@ def job():
     funcion_base()
 
 if __name__ == '__main__':
-    logger.info('Inicio del programa')
+    #logger.info('Inicio del programa')
     funcion_base() # Hacer una primera ejecución al correr el script
     #logger.info('Comienza la espera de 12 horas')
-    #schedule.every(12).hours.do(job) # Ejecutar después cada 12 horas
+    schedule.every(12).hours.do(job) # Ejecutar después cada 12 horas
 
-    #while True:
-        #schedule.run_pending()
-        #time.sleep(1)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

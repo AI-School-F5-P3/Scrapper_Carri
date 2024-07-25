@@ -3,14 +3,10 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload, selectinload
 from fastapi import HTTPException
 from typing import List
-import sys
-import os
+from logging_config import logger
 import random
 import models
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
-
-from logging_config import logger
 
 
 # Recuperar citas por autor

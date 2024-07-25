@@ -2,14 +2,11 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import SessionLocal, engine, Base, init_db
 from typing import Optional
+from logging_config import logger
 import uvicorn
 import crud
 import sys
-import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
-
-from logging_config import logger
 
 
 
