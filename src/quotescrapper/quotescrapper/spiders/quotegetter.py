@@ -190,14 +190,21 @@ def insert_data_to_db(quotes_data):
     for quote in quotes_data:
         text = quote['quote']
         author_id = author_ids[quote['author']]
-        tags = quote['tags']
-        tag_ids_for_quote = [tag_ids.get(tag) for tag in tags[:8]]  # Se limita a 8 tags ya que es el máximo que hay en la página
-        tag_ids_for_quote.extend([None] * (8 - len(tag_ids_for_quote)))  # Las tags que no se encuentran se rellenan con None
 
         cur.execute(f"""
-            INSERT INTO {SCHEMA_NAME}.quote (quote, author, tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (text, author_id, *tag_ids_for_quote))
+            INSERT INTO {SCHEMA_NAME}.quote (quote, author_id)
+            VALUES (%s, %s)
+            RETURNING id
+        """, (text, author_id))
+        quote_id = cur.fetchone()[0]
+
+        for tag in quote['tags']:
+            tag_id = tag_ids[tag]
+            cur.execute(f"""
+                INSERT INTO {SCHEMA_NAME}.quote_tag (quote_id, tag_id)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+            """, (quote_id, tag_id))
 
     conn.commit()
     logger.info('Commit realizado correctamete')
