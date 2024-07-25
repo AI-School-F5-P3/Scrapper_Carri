@@ -3,7 +3,7 @@ import os
 
 def setup_logger():
     for dirpath, dirnames, filename in os.walk("."):
-         for filename in [f for f in filename if f.endswith("quotegetter.py")]:
+         for filename in [f for f in filename if f.endswith("requirements.txt")]:
               os.chdir(dirpath)
 
     logger = logging.getLogger('logs') # Inicializar el gestor de logs.

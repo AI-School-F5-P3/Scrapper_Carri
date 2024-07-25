@@ -1,5 +1,6 @@
 import psycopg2
 import os
+import sys
 import scrapy
 import html
 import time
@@ -8,7 +9,11 @@ from scrapy import signals
 from scrapy.crawler import CrawlerProcess
 from scrapy.signalmanager import dispatcher
 from dotenv import load_dotenv
-from logger import logger
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../../')))
+
+from logging_config import logger
+
 
 #Base de datos
 load_dotenv()

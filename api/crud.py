@@ -2,10 +2,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
 from fastapi import HTTPException
-from logger import logger
 from typing import List
+import sys
+import os
 import random
 import models
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+
+from logging_config import logger
 
 
 # Recuperar citas por autor

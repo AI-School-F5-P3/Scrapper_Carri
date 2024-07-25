@@ -1,11 +1,17 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import SessionLocal, engine, Base, init_db
-from logger import logger
 from typing import List
 import uvicorn
 import crud
 import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+
+from logging_config import logger
+
+
 
 def handle_exception(exc_type, exc_value, exc_traceback):
     logger.error('Excecpión no recogida', exc_info = (exc_type, exc_value, exc_traceback))
