@@ -4,7 +4,6 @@ from database import SessionLocal, engine, Base, init_db
 from logger import logger
 from typing import List
 import uvicorn
-import schemas
 import crud
 import sys
 
@@ -66,7 +65,7 @@ async def buscar_citas_autor_route(
     return await crud.buscar_citas_autor(db, nombre_autor)
 
 @app.get("/autor/cita_random", tags = ['Autor'])
-async def buscar_cita_aleatoria_autor(
+async def buscar_cita_aleatoria_autor_route(
     nombre_autor:str,
     db: AsyncSession = Depends(get_db)
 ):

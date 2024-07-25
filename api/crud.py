@@ -63,6 +63,8 @@ async def buscar_cita_aleatoria_autor(
 
     logger.info(f'Recuperada cita aleatoria de {nombre_autor}')
 
+    return random_quote_data
+
 # Recuperar about de un autor
 
 async def buscar_about(
@@ -94,24 +96,35 @@ async def buscar_about(
 async def buscar_cita_aleatoria(
     db: AsyncSession,
 ):
-    result = await db.execute(
-        select(models.Quote)
-    )
-    quotes = result.scalars().all()
+    try:
+        # Ejecutar la consulta para obtener todas las citas, cargando la relación del autor
+        result = await db.execute(
+            select(models.Quote).options(
+                joinedload(models.Quote.author)
+            )
+        )
+        quotes = result.scalars().all()
 
-    if not quotes:
-        logger.error(f'No hay citas disponibles')
-        raise HTTPException(status_code = 404, detail = "No hay citas disponibles")
-    
-    random_quote = random.choice(quotes)
+        if not quotes:
+            logger.error('No hay citas disponibles')
+            raise HTTPException(status_code=404, detail="No hay citas disponibles")
 
-    random_quote_data = {
-        "nombre_autor": random_quote.author.author,
-        "citas": random_quote.quote
-    }
+        # Elegir una cita aleatoria
+        random_quote = random.choice(quotes)
 
-    logger.info(f'Recuperada cita aleatoria')
+        # Construir la respuesta
+        random_quote_data = {
+            "nombre_autor": random_quote.author.author if random_quote.author else "Desconocido",
+            "cita": random_quote.quote
+        }
 
+        logger.info('Recuperada cita aleatoria')
+
+        return random_quote_data
+
+    except Exception as e:
+        logger.error(f'Error al recuperar la cita aleatoria: {e}')
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
 
 async def buscar_citas_por_tags(
     db: AsyncSession,
