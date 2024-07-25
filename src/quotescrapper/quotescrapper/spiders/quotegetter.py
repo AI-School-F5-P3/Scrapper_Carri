@@ -60,12 +60,17 @@ class QuotegetterSpider(scrapy.Spider):
             request.meta['author_name'] = author
             request.meta['tags'] = tags
             yield request
+            logger.info(f'Extraido ítem con spider {request}')
 
         next_page = response.css('li.next a::attr(href)').get()
         if next_page is not None:
             yield response.follow(next_page, self.response_parser)
+            logger.info('Cambio de página')
 
     def parse_author_about(self, response):
+        '''
+        Este método se genera para poder extraer los "about" de los autores para luego guardarlos en la base de datos
+        '''
         description = response.css('div.author-description::text').get()
         description = html.unescape(description)
 
@@ -90,6 +95,7 @@ def quotes_spider_result():
 
     def crawler_results(item):
         quotes_results.append(item)
+        logger.info('Guardado resultado')
 
     dispatcher.connect(crawler_results, signal=signals.item_scraped)
     crawler_process = CrawlerProcess()
@@ -140,14 +146,18 @@ def insert_data_to_db(quotes_data):
             author_id = cur.fetchone()
             if author_id:
                 author_ids[author] = author_id[0]
+                logger.info(f'Añadido {author} correctamente')
             else:
                 # Si falla la inserción se busca el id por nombre del autor.
                 cur.execute(f"SELECT id FROM {SCHEMA_NAME}.author WHERE author = %s", (author,))
                 author_id = cur.fetchone()
                 if author_id:
                     author_ids[author] = author_id[0]
+                    logger.info(f'Añadido {author} correctamente')
                 else:
+                    logger.error(f'No puede recuperarse el ID de: {author}')
                     raise Exception(f"No puede recuperarse el ID de: {author}")
+                    
 
     # Tags e ids
     tag_ids = {}
@@ -162,10 +172,17 @@ def insert_data_to_db(quotes_data):
                 """, (tag,))
                 tag_id = cur.fetchone()
                 if tag_id:
+                    logger.info(f'Añadidas tags correctamente')
                     tag_ids[tag] = tag_id[0]
                 else:
                     cur.execute(f"SELECT id FROM {SCHEMA_NAME}.tag WHERE tag = %s", (tag,))
-                    tag_ids[tag] = cur.fetchone()[0]
+                    tag_id = cur.fetchone()
+                    if tag_id:
+                        tag_ids[tag] = tag_id[0]
+                        logger.info(f'Añadidas tags correctamente')
+                    else:
+                        logger.error(f'No puede recuperarse el ID de: {tag}')
+                        raise Exception(f"No puede recuperarse el ID de: {tag}")
 
     # Insert quotes
     for quote in quotes_data:
@@ -181,10 +198,13 @@ def insert_data_to_db(quotes_data):
         """, (text, author_id, *tag_ids_for_quote))
 
     conn.commit()
+    logger.info('Commit realizado correctamete')
     cur.close()
     conn.close()
+    logger.info('Cerrada la conexion a la base de datos')
 
 if __name__ == '__main__':
     # Inicio del proceso
+    logger.info('Inicio del programa')
     quotes_data = quotes_spider_result()
     insert_data_to_db(quotes_data)
