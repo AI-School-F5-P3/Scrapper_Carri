@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from fastapi import HTTPException
 from typing import List
 import sys
@@ -136,7 +136,7 @@ async def buscar_citas_por_tags(
     tags: List[str]
 ):
     # Verificar que se ha proporcionado al menos una etiqueta
-    if not tags or len(tags) == 0:
+    if not tags:
         logger.error('Se debe proporcionar al menos una etiqueta')
         raise HTTPException(status_code=400, detail="Se debe proporcionar al menos una etiqueta")
 
@@ -148,20 +148,22 @@ async def buscar_citas_por_tags(
     # Construir la consulta para filtrar las citas que contengan todas las etiquetas proporcionadas
     tag_subqueries = []
     for tag in tags:
-        tag_subqueries.append(
+        subquery = (
             select(models.Quote.id)
             .join(models.quote_tag_table)
             .join(models.Tag)
             .filter(models.Tag.tag == tag)
             .subquery()
         )
+        tag_subqueries.append(subquery)
 
+    # Si no hay subconsultas, se lanzará una excepción, pero esto no debería suceder ya que se verifica antes
     if not tag_subqueries:
         logger.error('No se encontraron citas con las etiquetas proporcionadas')
         raise HTTPException(status_code=404, detail="No se encontraron citas con las etiquetas proporcionadas")
 
     # Usar un join en las subconsultas para obtener las citas que coincidan con todas las etiquetas
-    query = select(models.Quote).filter(
+    query = select(models.Quote).options(selectinload(models.Quote.author)).filter(
         models.Quote.id.in_(tag_subqueries[0])
     )
     for subquery in tag_subqueries[1:]:
@@ -175,19 +177,15 @@ async def buscar_citas_por_tags(
     if not quotes:
         logger.error('No se encontraron citas con las etiquetas proporcionadas')
         raise HTTPException(status_code=404, detail="No se encontraron citas con las etiquetas proporcionadas")
-    
+
     # Formatear la respuesta para incluir las citas con las etiquetas específicas
-    quotes_data = {
-        "etiquetas": tags,
-        "citas": [
-            {
-                "cita": quote.quote,
-                "autor": quote.author.author,
-                "tags": [tag.tag for tag in quote.tags]
-            }
-            for quote in quotes
-        ]
-    }
+    quotes_data = [
+        {
+            "nombre_autor": quote.author.author,  # Dado que author no puede ser None
+            "cita": quote.quote
+        }
+        for quote in quotes
+    ]
 
     logger.info(f'Recuperadas citas con las etiquetas {tags}')
     
