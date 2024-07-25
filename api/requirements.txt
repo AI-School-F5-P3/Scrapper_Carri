@@ -1,6 +1,6 @@
 scrapy==2.11.2
 python-dotenv==1.0.1
-psycopg2-binary==2.9.9
+psycopg2==2.9.9
 schedule==1.2.2
 sqlalchemy==2.0.31
 python-dotenv==1.0.1

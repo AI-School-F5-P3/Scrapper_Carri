@@ -8,7 +8,8 @@ from scrapy import signals
 from scrapy.crawler import CrawlerProcess
 from scrapy.signalmanager import dispatcher
 from dotenv import load_dotenv
-from logger import logger
+from logging_config import logger
+
 
 #Base de datos
 load_dotenv()
@@ -116,8 +117,8 @@ def insert_data_to_db(quotes_data):
         dbname=DB_NAME,
         user=DB_USER,
         password=DB_PASSWORD,
-        host=DB_HOST,
-        port=DB_PORT
+        host='quotes-db',
+        port=5432
     )
     cur = conn.cursor()
 
@@ -190,14 +191,21 @@ def insert_data_to_db(quotes_data):
     for quote in quotes_data:
         text = quote['quote']
         author_id = author_ids[quote['author']]
-        tags = quote['tags']
-        tag_ids_for_quote = [tag_ids.get(tag) for tag in tags[:8]]  # Se limita a 8 tags ya que es el máximo que hay en la página
-        tag_ids_for_quote.extend([None] * (8 - len(tag_ids_for_quote)))  # Las tags que no se encuentran se rellenan con None
 
         cur.execute(f"""
-            INSERT INTO {SCHEMA_NAME}.quote (quote, author, tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (text, author_id, *tag_ids_for_quote))
+            INSERT INTO {SCHEMA_NAME}.quote (quote, author_id)
+            VALUES (%s, %s)
+            RETURNING id
+        """, (text, author_id))
+        quote_id = cur.fetchone()[0]
+
+        for tag in quote['tags']:
+            tag_id = tag_ids[tag]
+            cur.execute(f"""
+                INSERT INTO {SCHEMA_NAME}.quote_tag (quote_id, tag_id)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+            """, (quote_id, tag_id))
 
     conn.commit()
     logger.info('Commit realizado correctamete')
@@ -220,9 +228,9 @@ def job():
 if __name__ == '__main__':
     logger.info('Inicio del programa')
     funcion_base() # Hacer una primera ejecución al correr el script
-    #logger.info('Comienza la espera de 12 horas')
-    #schedule.every(12).hours.do(job) # Ejecutar después cada 12 horas
+    logger.info('Comienza la espera de 12 horas')
+    schedule.every(12).hours.do(job) # Ejecutar después cada 12 horas
 
-    #while True:
-        #schedule.run_pending()
-        #time.sleep(1)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

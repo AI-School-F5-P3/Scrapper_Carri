@@ -16,7 +16,7 @@ db_schema = os.getenv('DB_SCHEMA')
 db_user = os.getenv('DB_USER')
 db_pass = os.getenv('DB_PASSWORD')
 
-database_url = f'{db_type}://{db_user}:{db_pass}@quotes-db:5433/{db_name}'
+database_url = f'{db_type}://{db_user}:{db_pass}@quotes-db:5432/{db_name}'
 
 SQLALCHEMY_DB = database_url
 

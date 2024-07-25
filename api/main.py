@@ -1,11 +1,14 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import SessionLocal, engine, Base, init_db
-from logger import logger
+from typing import Optional
+from logging_config import logger
 import uvicorn
-import schemas
 import crud
 import sys
+
+
+
 
 def handle_exception(exc_type, exc_value, exc_traceback):
     logger.error('Excecpión no recogida', exc_info = (exc_type, exc_value, exc_traceback))
@@ -54,3 +57,52 @@ async def on_startup():
     await init_db()
 
 app.add_event_handler("startup", on_startup)
+
+# Endpoints GET
+
+@app.get("/autor/citas", tags = ['Autor'])
+async def buscar_citas_autor_route(
+    nombre_autor: str,
+    db: AsyncSession = Depends(get_db)
+):
+    return await crud.buscar_citas_autor(db, nombre_autor)
+
+@app.get("/autor/cita_random", tags = ['Autor'])
+async def buscar_cita_aleatoria_autor_route(
+    nombre_autor:str,
+    db: AsyncSession = Depends(get_db)
+):
+    return await crud.buscar_cita_aleatoria_autor(db, nombre_autor)
+
+@app.get("/autor/about", tags = ['Autor'])
+async def buscar_about_route(
+    nombre_autor:str,
+    db: AsyncSession = Depends(get_db)
+):
+    return await crud.buscar_about(db, nombre_autor)
+
+@app.get("/cita_dia")
+async def buscar_cita_aleatoria_route(
+    db: AsyncSession = Depends(get_db)
+):
+    return await crud.buscar_cita_aleatoria(db)
+
+@app.get("/tags/cita", tags = ['Tags'])
+async def buscar_citas_por_tags_route(
+    tag1: str = None,
+    tag2: Optional[str] = None,
+    tag3: Optional[str] = None,
+    tag4: Optional[str] = None,
+    tag5: Optional[str] = None,
+    tag6: Optional[str] = None,
+    tag7: Optional[str] = None,
+    tag8: Optional[str] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    tags = [tag for tag in [tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8] if tag]
+    return await crud.buscar_citas_por_tags(db, tags)
+
+
+if __name__ == "__main__":
+    logger.info("incio de la aplicacion")
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

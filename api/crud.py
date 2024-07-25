@@ -1,0 +1,188 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import joinedload, selectinload
+from fastapi import HTTPException
+from typing import List
+from logging_config import logger
+import random
+import models
+
+
+
+# Recuperar citas por autor
+
+async def buscar_citas_autor(
+    db:AsyncSession,
+    nombre_autor: str
+):
+    result = await db.execute(
+        select(models.Quote)
+        .options(joinedload(models.Quote.author))
+        .filter(models.Author.author == nombre_autor)
+    )
+    quotes = result.scalars().all()
+
+    if not quotes:
+        logger.error(f'{nombre_autor} no encontrado')
+        raise HTTPException(status_code = 404, detail = "Autor no encontrado")
+    
+    quotes_data = {
+        "nombre_autor": nombre_autor,
+        "citas": [
+            {"cita": quote.quote}
+            for quote in quotes
+        ]
+    }
+
+    logger.info(f'Recuperadas citas del autor {nombre_autor}')
+
+    return quotes_data
+
+# Recuperar cita random de autor
+
+async def buscar_cita_aleatoria_autor(
+    db: AsyncSession,
+    nombre_autor: str
+):
+    result = await db.execute(
+        select(models.Quote)
+        .options(joinedload(models.Quote.author))
+        .filter(models.Author.author == nombre_autor)
+    )
+    quotes = result.scalars().all()
+
+    if not quotes:
+        logger.error(f'{nombre_autor} no encontrado')
+        raise HTTPException(status_code = 404, detail = "Autor no encontrado")
+    
+    random_quote = random.choice(quotes)
+
+    random_quote_data = {
+        "nombre_autor": nombre_autor,
+        "citas": random_quote.quote
+    }
+
+    logger.info(f'Recuperada cita aleatoria de {nombre_autor}')
+
+    return random_quote_data
+
+# Recuperar about de un autor
+
+async def buscar_about(
+    db: AsyncSession,
+    nombre_autor: str
+):
+    result = await db.execute(
+        select(models.Author)
+        .filter(models.Author.author == nombre_autor)
+    )
+    author = result.scalars().first()
+
+    if author is None:
+        logger.error(f'{nombre_autor} no encontrado')
+        raise HTTPException(status_code=404, detail="Autor no encontrado")
+    
+    author_data = {
+        "nombre_autor": nombre_autor,
+        "about": author.about
+    }
+
+    logger.info(f'Recuperado "about" del autor {nombre_autor}')
+    
+    return author_data
+                              
+
+# Recuperar cita random en general
+
+async def buscar_cita_aleatoria(
+    db: AsyncSession,
+):
+    try:
+        # Ejecutar la consulta para obtener todas las citas, cargando la relación del autor
+        result = await db.execute(
+            select(models.Quote).options(
+                joinedload(models.Quote.author)
+            )
+        )
+        quotes = result.scalars().all()
+
+        if not quotes:
+            logger.error('No hay citas disponibles')
+            raise HTTPException(status_code=404, detail="No hay citas disponibles")
+
+        # Elegir una cita aleatoria
+        random_quote = random.choice(quotes)
+
+        # Construir la respuesta
+        random_quote_data = {
+            "nombre_autor": random_quote.author.author if random_quote.author else "Desconocido",
+            "cita": random_quote.quote
+        }
+
+        logger.info('Recuperada cita aleatoria')
+
+        return random_quote_data
+
+    except Exception as e:
+        logger.error(f'Error al recuperar la cita aleatoria: {e}')
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
+
+async def buscar_citas_por_tags(
+    db: AsyncSession,
+    tags: List[str]
+):
+    # Verificar que se ha proporcionado al menos una etiqueta
+    if not tags:
+        logger.error('Se debe proporcionar al menos una etiqueta')
+        raise HTTPException(status_code=400, detail="Se debe proporcionar al menos una etiqueta")
+
+    # Limitar el número de etiquetas a 8
+    if len(tags) > 8:
+        logger.error('Se pueden proporcionar un máximo de 8 etiquetas')
+        raise HTTPException(status_code=400, detail="Se pueden proporcionar un máximo de 8 etiquetas")
+
+    # Construir la consulta para filtrar las citas que contengan todas las etiquetas proporcionadas
+    tag_subqueries = []
+    for tag in tags:
+        subquery = (
+            select(models.Quote.id)
+            .join(models.quote_tag_table)
+            .join(models.Tag)
+            .filter(models.Tag.tag == tag)
+            .subquery()
+        )
+        tag_subqueries.append(subquery)
+
+    # Si no hay subconsultas, se lanzará una excepción, pero esto no debería suceder ya que se verifica antes
+    if not tag_subqueries:
+        logger.error('No se encontraron citas con las etiquetas proporcionadas')
+        raise HTTPException(status_code=404, detail="No se encontraron citas con las etiquetas proporcionadas")
+
+    # Usar un join en las subconsultas para obtener las citas que coincidan con todas las etiquetas
+    query = select(models.Quote).options(selectinload(models.Quote.author)).filter(
+        models.Quote.id.in_(tag_subqueries[0])
+    )
+    for subquery in tag_subqueries[1:]:
+        query = query.filter(
+            models.Quote.id.in_(subquery)
+        )
+
+    result = await db.execute(query)
+    quotes = result.scalars().all()
+
+    if not quotes:
+        logger.error('No se encontraron citas con las etiquetas proporcionadas')
+        raise HTTPException(status_code=404, detail="No se encontraron citas con las etiquetas proporcionadas")
+
+    # Formatear la respuesta para incluir las citas con las etiquetas específicas
+    quotes_data = [
+        {
+            "nombre_autor": quote.author.author,  # Dado que author no puede ser None
+            "cita": quote.quote
+        }
+        for quote in quotes
+    ]
+
+    logger.info(f'Recuperadas citas con las etiquetas {tags}')
+    
+    return quotes_data

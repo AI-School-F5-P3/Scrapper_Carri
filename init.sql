@@ -21,6 +21,7 @@ CREATE SCHEMA IF NOT EXISTS quotes;
 DROP TABLE IF EXISTS quotes.quote CASCADE;
 DROP TABLE IF EXISTS quotes.tag CASCADE;
 DROP TABLE IF EXISTS quotes.author CASCADE;
+DROP TABLE IF EXISTS quotes.quote_tag CASCADE;
 
 -- Crear la tabla 'tag'
 CREATE TABLE quotes.tag (
@@ -43,33 +44,24 @@ COMMENT ON COLUMN quotes.author."about" IS 'Información sobre el autor';
 -- Crear la tabla 'quote'
 CREATE TABLE quotes.quote (
     "id" SERIAL PRIMARY KEY,
-    "quote" VARCHAR,
-    "author" INTEGER NOT NULL,
-    "tag1" INTEGER,
-    "tag2" INTEGER,
-    "tag3" INTEGER, 
-    "tag4" INTEGER,
-    "tag5" INTEGER,
-    "tag6" INTEGER,
-    "tag7" INTEGER,
-    "tag8" INTEGER,
-    FOREIGN KEY ("author") REFERENCES quotes.author("id"),
-    FOREIGN KEY ("tag1") REFERENCES quotes.tag("id"),
-    FOREIGN KEY ("tag2") REFERENCES quotes.tag("id"),
-    FOREIGN KEY ("tag3") REFERENCES quotes.tag("id"),
-    FOREIGN KEY ("tag4") REFERENCES quotes.tag("id"),
-    FOREIGN KEY ("tag5") REFERENCES quotes.tag("id"),
-    FOREIGN KEY ("tag6") REFERENCES quotes.tag("id"),
-    FOREIGN KEY ("tag7") REFERENCES quotes.tag("id"),
-    FOREIGN KEY ("tag8") REFERENCES quotes.tag("id")
+    "quote" TEXT NOT NULL,
+    "author_id" INTEGER NOT NULL,
+    FOREIGN KEY ("author_id") REFERENCES quotes.author("id")
 );
 
-COMMENT ON TABLE quotes.quote IS 'Tabla para almacenar las citas y sus etiquetas';
-COMMENT ON COLUMN quotes.quote."id" IS 'Identificador de cita';
+COMMENT ON TABLE quotes.quote IS 'Tabla para almacenar las citas';
 COMMENT ON COLUMN quotes.quote."quote" IS 'Texto de la cita';
-COMMENT ON COLUMN quotes.quote."author" IS 'Identificador del autor';
-COMMENT ON COLUMN quotes.quote."tag1" IS 'Identificador para la etiqueta';
 
+-- Crear la tabla asociativa 'quote_tag' para manejar la relación muchos-a-muchos
+CREATE TABLE quotes.quote_tag (
+    "quote_id" INTEGER NOT NULL,
+    "tag_id" INTEGER NOT NULL,
+    PRIMARY KEY ("quote_id", "tag_id"),
+    FOREIGN KEY ("quote_id") REFERENCES quotes.quote("id"),
+    FOREIGN KEY ("tag_id") REFERENCES quotes.tag("id")
+);
+
+COMMENT ON TABLE quotes.quote_tag IS 'Tabla asociativa para la relación muchos-a-muchos entre quotes y tags';
 -- Crear el rol 'administrator' si no existe
 DO $$
 BEGIN
