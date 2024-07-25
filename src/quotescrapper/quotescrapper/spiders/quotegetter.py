@@ -1,8 +1,24 @@
-import csv
+import psycopg2
+import os
 import scrapy
+import html
 from scrapy import signals
 from scrapy.crawler import CrawlerProcess
 from scrapy.signalmanager import dispatcher
+from dotenv import load_dotenv
+from logger import logger
+
+#Base de datos
+load_dotenv()
+
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+
+SCHEMA_NAME = 'quotes'
+
 
 class QuotegetterSpider(scrapy.Spider):
     '''
@@ -34,17 +50,33 @@ class QuotegetterSpider(scrapy.Spider):
             text = text.replace("â€œ", '"').replace("â€", '"').replace("â€™", "'")
             
             author = selector.css('span small.author::text').get()
+            author_link = selector.css('span small.author ~ a::attr(href)').get()
             tags = selector.css('div.tags a.tag::text').getall()
             
-            yield {
-                'text': text,
-                'author': author,
-                'tags': tags,
-            }
+            author_about_url = response.urljoin(author_link)
+
+            request = scrapy.Request(author_about_url, callback=self.parse_author_about)
+            request.meta['quote_text'] = text
+            request.meta['author_name'] = author
+            request.meta['tags'] = tags
+            yield request
 
         next_page = response.css('li.next a::attr(href)').get()
         if next_page is not None:
             yield response.follow(next_page, self.response_parser)
+
+    def parse_author_about(self, response):
+        description = response.css('div.author-description::text').get()
+        description = html.unescape(description)
+
+        print(f"Extracted about: {description}")
+
+        yield {
+            'quote': response.meta['quote_text'],
+            'author': response.meta['author_name'],
+            'about': description,
+            'tags': response.meta['tags']
+        }
 
 def quotes_spider_result():
     '''
@@ -65,31 +97,94 @@ def quotes_spider_result():
     crawler_process.start()
     return quotes_results
 
-def expand_tags(quotes_data):
+def insert_data_to_db(quotes_data):
     '''
-    La función expand_tags sirve para en lugar de devolver una lista con todas las tags asociada a una cita, nos devuelve cada cita por separado para poder incorporarla al archivo de datos.
+    Esta función permitirá introducir los datos que se extraigan de la página en la base de datos que hayamos creado previamente.
+    Primero se debe realizar la conexión a la base de datos, para ello se ha utilizado un archivo de variables de entorno .env para aumentar la seguridad, cada usuario tendrá que crearse el suyo con los datos pertinentes.
+
+    A continuación, con los datos extraidos por la spider, se irán incluyendo los datos extraidos a las tablas que queramos y en función de las columnas que hayamos definido.
     '''
-    expanded_data = []
+    conn = psycopg2.connect(
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        host=DB_HOST,
+        port=DB_PORT
+    )
+    cur = conn.cursor()
+
+    '''
+    Para insertar los datos en la tabla de autores, se necesita recorrer todos los datos que se han extraido en quotes_data, de aquí se extrae el nombre del autor y el "about" correspondiente.
+    En author_ids se iran guardando los autores que ya se hayan añadido en la base de datos, para que solo se inserten en la base de datos una vez.
+    cur.execute es una función de psycopg2 que permite realizar ejecuciones sql en python, en este caso cuando encontramos un autor que no está en la base de datos se inserta en la tabla autor su nombre y su "about". Si hay un conflicto en autor se actualiza el "about".
+    Despues se comprueba con cur.fetchone y el siguiente condicional que la ejecución ha sido correcta, en cuyo caso se guarda en el diccionario author_ids el id del autor que se acaba de insertar.
+    Si el proceso falla, dentro del else se incluye una segunda comproboción que busca el id del autor en función del nombre que ha obtenido al scrapear el item. De esta forma se valida una segunda vez si existe el autor para evitar errores.
+    Por último, si de esta forma tampoco se localiza un id se genera una excepción (error) para avisar al usuario de que no se encuentra el autor en la base de datos.
+
+    Este proceso se repite para los tags y para las citas. Para las citas además se van a guardar en diferentes columnas todas las etiquetas posibles que presente una cita.
+
+    Por último se ejecutan las acciones en la base de datos y se cierra el cursos y la conexión a la base de datos.
+    '''
+    author_ids = {}
     for quote in quotes_data:
-        base = {k: v for k, v in quote.items() if k != 'tags'}
-        for i, tag in enumerate(quote['tags']):
-            base[f'tag_{i+1}'] = tag
-        expanded_data.append(base)
-    return expanded_data
+        author = quote['author']
+        about = quote.get('about', '').strip() # strip elimina los espacios en blanco antes del texto
+        if author not in author_ids:
+            cur.execute(f"""
+                INSERT INTO {SCHEMA_NAME}.author (author, about)
+                VALUES (%s, %s)
+                ON CONFLICT (author) DO UPDATE
+                SET about = EXCLUDED.about
+                RETURNING id
+            """, (author, about))
+            author_id = cur.fetchone()
+            if author_id:
+                author_ids[author] = author_id[0]
+            else:
+                # Si falla la inserción se busca el id por nombre del autor.
+                cur.execute(f"SELECT id FROM {SCHEMA_NAME}.author WHERE author = %s", (author,))
+                author_id = cur.fetchone()
+                if author_id:
+                    author_ids[author] = author_id[0]
+                else:
+                    raise Exception(f"No puede recuperarse el ID de: {author}")
+
+    # Tags e ids
+    tag_ids = {}
+    for quote in quotes_data:
+        for tag in quote['tags']:
+            if tag not in tag_ids:
+                cur.execute(f"""
+                    INSERT INTO {SCHEMA_NAME}.tag (tag)
+                    VALUES (%s)
+                    ON CONFLICT (tag) DO NOTHING
+                    RETURNING id
+                """, (tag,))
+                tag_id = cur.fetchone()
+                if tag_id:
+                    tag_ids[tag] = tag_id[0]
+                else:
+                    cur.execute(f"SELECT id FROM {SCHEMA_NAME}.tag WHERE tag = %s", (tag,))
+                    tag_ids[tag] = cur.fetchone()[0]
+
+    # Insert quotes
+    for quote in quotes_data:
+        text = quote['quote']
+        author_id = author_ids[quote['author']]
+        tags = quote['tags']
+        tag_ids_for_quote = [tag_ids.get(tag) for tag in tags[:8]]  # Se limita a 8 tags ya que es el máximo que hay en la página
+        tag_ids_for_quote.extend([None] * (8 - len(tag_ids_for_quote)))  # Las tags que no se encuentran se rellenan con None
+
+        cur.execute(f"""
+            INSERT INTO {SCHEMA_NAME}.quote (quote, author, tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (text, author_id, *tag_ids_for_quote))
+
+    conn.commit()
+    cur.close()
+    conn.close()
 
 if __name__ == '__main__':
-    '''
-    La función de inicio ejecuta la función de scrapeo y la función de expansión de las tags.
-    Después crea un csv donde se almacenan todos los datos que se han scrapeado, el siguiente paso será añadirlos a una base de datos postgres.
-    '''
+    # Inicio del proceso
     quotes_data = quotes_spider_result()
-    expanded_data = expand_tags(quotes_data)
-    
-    # Determine the maximum number of tags
-    max_tags = max(len(quote['tags']) for quote in quotes_data)
-    keys = ['text', 'author'] + [f'tag_{i+1}' for i in range(max_tags)]
-
-    with open('quotes_data.csv', 'w', newline='', encoding='utf-8') as output_file_name:
-        writer = csv.DictWriter(output_file_name, fieldnames=keys, delimiter=';')
-        writer.writeheader()
-        writer.writerows(expanded_data)
+    insert_data_to_db(quotes_data)
