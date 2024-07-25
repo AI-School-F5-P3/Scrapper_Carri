@@ -8,6 +8,7 @@ FROM pg_stat_activity
 WHERE datname = 'quotes' AND pid <> pg_backend_pid();
 
 -- Conectar a la base de datos 'quotes'
+
 \c quotes
 
 SET client_encoding TO 'UTF8';
@@ -33,7 +34,7 @@ COMMENT ON TABLE quotes.tag IS 'Tabla para almacenar las etiquetas';
 CREATE TABLE quotes.author (
     "id" SERIAL PRIMARY KEY,
     "author" VARCHAR(100) UNIQUE NOT NULL,
-    "about" VARCHAR
+    "about" TEXT
 );
 
 COMMENT ON TABLE quotes.author IS 'Tabla que almacena la información sobre el autor de la cita';
@@ -44,7 +45,7 @@ CREATE TABLE quotes.quote (
     "id" SERIAL PRIMARY KEY,
     "quote" VARCHAR,
     "author" INTEGER NOT NULL,
-    "tag1" INTEGER NOT NULL,
+    "tag1" INTEGER,
     "tag2" INTEGER,
     "tag3" INTEGER, 
     "tag4" INTEGER,

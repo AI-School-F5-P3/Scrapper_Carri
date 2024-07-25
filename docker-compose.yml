@@ -8,10 +8,9 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_DB}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./data:/mnt/data  # Volumen adicional para exportar archivos CSV
     ports:
       - "5433:5432"
     networks:

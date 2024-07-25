@@ -220,9 +220,9 @@ def job():
 if __name__ == '__main__':
     logger.info('Inicio del programa')
     funcion_base() # Hacer una primera ejecución al correr el script
-    logger.info('Comienza la espera de 12 horas')
-    schedule.every(12).hours.do(job) # Ejecutar después cada 12 horas
+    #logger.info('Comienza la espera de 12 horas')
+    #schedule.every(12).hours.do(job) # Ejecutar después cada 12 horas
 
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    #while True:
+        #schedule.run_pending()
+        #time.sleep(1)
