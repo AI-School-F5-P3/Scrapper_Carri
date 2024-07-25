@@ -2,6 +2,8 @@ import psycopg2
 import os
 import scrapy
 import html
+import time
+import schedule
 from scrapy import signals
 from scrapy.crawler import CrawlerProcess
 from scrapy.signalmanager import dispatcher
@@ -203,8 +205,24 @@ def insert_data_to_db(quotes_data):
     conn.close()
     logger.info('Cerrada la conexion a la base de datos')
 
-if __name__ == '__main__':
-    # Inicio del proceso
-    logger.info('Inicio del programa')
+def funcion_base():
+    logger.info('Inicio de scraping y actualización de db')
     quotes_data = quotes_spider_result()
     insert_data_to_db(quotes_data)
+    logger.info('Scraping y actualización de la base de datos completada')
+
+def job():
+    '''
+    Funcion para introducir en el gestor de tiempos, para ejecutar el programa cada 12 horas
+    '''
+    funcion_base()
+
+if __name__ == '__main__':
+    logger.info('Inicio del programa')
+    funcion_base() # Hacer una primera ejecución al correr el script
+    logger.info('Comienza la espera de 12 horas')
+    schedule.every(12).hours.do(job) # Ejecutar después cada 12 horas
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
