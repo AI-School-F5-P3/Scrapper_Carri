@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from logging_config import logger
+from deep_translator import GoogleTranslator
 from API_calls_get import get_citas_autor, get_cita_aleatoria
 
 def change_screen(new_screen):
@@ -68,7 +69,9 @@ def screen_autor():
                 if idioma == 'Inglés':
                     st.markdown(f'<div class="great-vibes-text">{cita} {nombre}.</div>', unsafe_allow_html=True)
                 elif idioma == 'Español':
-                    st.markdown(f'<div class="great-vibes-text">{cita} {nombre}.</div>', unsafe_allow_html=True)
+                    translator = GoogleTranslator(source='auto', target='es')
+                    cita_es = translator.translate(cita)
+                    st.markdown(f'<div class="great-vibes-text">{cita_es} {nombre}.</div>', unsafe_allow_html=True)
 
        
     if st.button('Sobre el autor'):
