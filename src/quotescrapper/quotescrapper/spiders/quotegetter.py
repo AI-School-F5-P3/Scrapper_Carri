@@ -192,6 +192,15 @@ def insert_data_to_db(quotes_data):
         text = quote['quote']
         author_id = author_ids[quote['author']]
 
+    # Comprobar si la cita ya existe en la base de datos
+    cur.execute(f"""
+        SELECT id FROM {SCHEMA_NAME}.quote
+        WHERE quote = %s AND author_id = %s
+    """, (text, author_id))
+    result = cur.fetchone()
+
+    if result is None:
+        # La cita no existe, insertarla
         cur.execute(f"""
             INSERT INTO {SCHEMA_NAME}.quote (quote, author_id)
             VALUES (%s, %s)
@@ -199,6 +208,18 @@ def insert_data_to_db(quotes_data):
         """, (text, author_id))
         quote_id = cur.fetchone()[0]
 
+        for tag in quote['tags']:
+            tag_id = tag_ids[tag]
+            cur.execute(f"""
+                INSERT INTO {SCHEMA_NAME}.quote_tag (quote_id, tag_id)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+            """, (quote_id, tag_id))
+    else:
+        # La cita ya existe, obtener el id existente
+        quote_id = result[0]
+
+        # Asegurarse de que todas las etiquetas estén asociadas con la cita
         for tag in quote['tags']:
             tag_id = tag_ids[tag]
             cur.execute(f"""
