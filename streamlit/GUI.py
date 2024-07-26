@@ -8,6 +8,13 @@ def login():
     '''
     username se ha dijado como admin y password como 1234 para facilitar las pruebas, pero lo correcto sería externalizar estos datos.
     '''
+    pen = "\U0001F58B"
+    scroll = "\U0001F4DC"
+    
+
+    st.markdown(f"""<h1 style="text-align: center;"> {pen} {scroll} Quotter {scroll} {pen} </h1>""", unsafe_allow_html=True)
+    st.markdown("""<h2 style="text-align: center;">Bienvenido/a a la página de gestión de su base de datos.</h2>""", unsafe_allow_html=True)
+
     st.sidebar.subheader("Login")
     username = st.sidebar.text_input("Usuario")
     password = st.sidebar.text_input("Contraseña", type="password")
@@ -43,6 +50,11 @@ h1, h2 {
 .stMarkdown, .stText, .stAlert {
         font-family: 'Great Vibes', cursive;
     }
+.great-vibes-text {
+        font-family: 'Great Vibes', cursive;
+        font-size: 36px;
+        text-align: center;
+    }
 </style>
 """
 
@@ -52,7 +64,7 @@ st.markdown(font_css, unsafe_allow_html=True)
 # Custom HTML/CSS for the banner
 custom_html = """
 <div class="banner">
-    <img src="https://www.mtgpics.com/pics/art/sld/605.jpg" alt="Banner Image" height="500" width="1000">
+    <img src="https://s26162.pcdn.co/wp-content/uploads/2019/07/books.jpg" alt="Banner Image" height="200" width="1000">
 </div>
 <style>
     .banner {

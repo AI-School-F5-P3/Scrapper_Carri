@@ -91,29 +91,23 @@ def get_cita_aleatoria(nombre_autor):
         print(f'Error al hacer la solicitud: {response.status_code}')
 
 
-def get_precios(pack):
-    base_url = 'http://api:8000/precios/get'
+def get_cita_dia():
+    base_url = 'http://localhost:8000/cita_dia'
     
-    params = {
-        'pack': pack
-    }
-
     # Encabezados de la solicitud
     headers = {
         'accept': 'application/json'
     }
 
     # Realizar la solicitud GET
-    response = requests.get(base_url, headers=headers, params=params)
+    response = requests.get(base_url, headers=headers)
 
     built_url = response.url
     print(f'Generated URL: {built_url}')
 
     if response.status_code == 200:
-        data = response.json()
-        data_list = [data]
-        df = pd.DataFrame(data_list)
-        return data_list, df
+        data = response.json()  # Convertir la respuesta JSON a un diccionario Python
+        return data
     else:
         # Ocurrió un error
         logger.error(f'Error al hacer la solicitud: {response.status_code}')

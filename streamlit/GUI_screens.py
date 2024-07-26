@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from logging_config import logger
 from deep_translator import GoogleTranslator
-from API_calls_get import get_citas_autor, get_cita_aleatoria
+from API_calls_get import get_citas_autor, get_cita_aleatoria, get_cita_dia
 
 def change_screen(new_screen):
     st.session_state.screen = new_screen
@@ -15,38 +15,29 @@ def home_screen():
     st.markdown(f"""<h1 style="text-align: center;"> {pen} {scroll} Quotter {scroll} {pen} </h1>""", unsafe_allow_html=True)
     st.markdown("""<h2 style="text-align: center;">Bienvenido/a a la página de gestión de su base de datos.</h2>""", unsafe_allow_html=True)
 
+    if 'data' not in st.session_state:
+        st.session_state.data = get_cita_dia()
+
+    data = st.session_state.data
+    nombre = data.get("nombre_autor")
+    cita = data.get("cita")
+
+    st.markdown(f'<div class="great-vibes-text">{cita} {nombre}.</div>', unsafe_allow_html=True)
+
+
+
 def screen_autor():
     pen = "\U0001F58B"
+    scroll = "\U0001F4DC"
     
-    font_css = """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
-
-    h1, h2 {
-        font-family: 'Cinzel', serif;
-        text-align: center;
-    }
-
-    .great-vibes-text {
-        font-family: 'Great Vibes', cursive;
-        font-size: 36px;
-        text-align: center;
-    }
-    </style>
-    """
-
-    # Agrega el CSS a tu aplicación de Streamlit
-    st.markdown(font_css, unsafe_allow_html=True)
-
     # Encabezados
-    st.markdown(f"""<h1 style="text-align: center;"> {pen} Quotter {pen} </h1>""", unsafe_allow_html=True)
+    st.markdown(f"""<h1 style="text-align: center;"> {pen} {scroll} Quotter {scroll} {pen} </h1>""", unsafe_allow_html=True)
     st.markdown("""<h2 style="text-align: center;">Busqueda de citas por autores</h2>""", unsafe_allow_html=True)
 
     # Campo de entrada para el nombre del autor
     nombre_autor = st.text_input('Nombre y apellidos del autor/a')
 
-    idioma = st.selectbox('Idioma a mostrar', options = ['Inglés', 'Español'])
+    idioma = st.selectbox('Idioma a mostrar', options = ['Inglés', 'Español', 'Portugués', 'Ukraniano'])
 
     if st.button('Mostrar todas las citas del autor/a'):
         if nombre_autor:
@@ -69,9 +60,17 @@ def screen_autor():
                 if idioma == 'Inglés':
                     st.markdown(f'<div class="great-vibes-text">{cita} {nombre}.</div>', unsafe_allow_html=True)
                 elif idioma == 'Español':
-                    translator = GoogleTranslator(source='auto', target='es')
+                    translator = GoogleTranslator(source='en', target='es')
                     cita_es = translator.translate(cita)
                     st.markdown(f'<div class="great-vibes-text">{cita_es} {nombre}.</div>', unsafe_allow_html=True)
+                elif idioma == 'Portugués':
+                    translator = GoogleTranslator(source = 'en', target = 'pt')
+                    cita_pt = translator.translate(cita)
+                    st.markdown(f'<div class="great-vibes-text">{cita_pt} {nombre}.</div>', unsafe_allow_html=True)
+                elif idioma == 'Ukraniano':
+                    translator = GoogleTranslator(source = 'en', target = 'uk')
+                    cita_uk = translator.translate(cita)
+                    st.markdown(f'<div class="great-vibes-text">{cita_uk} {nombre}.</div>', unsafe_allow_html=True)
 
        
     if st.button('Sobre el autor'):
