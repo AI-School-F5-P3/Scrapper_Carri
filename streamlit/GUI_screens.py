@@ -41,16 +41,23 @@ def screen_autor():
 
     if st.button('Mostrar todas las citas del autor/a'):
         if nombre_autor:
-            data, df = get_citas_autor(nombre_autor)
+            data = get_citas_autor(nombre_autor)
             if data is None:
                 st.warning('No se han encontrado citas para este autor')
             else:
                 logger.info(f'Obtenidas citas de {nombre_autor}')
-                st.write(data)
+                nombre = data.get("nombre_autor")
+                citas = data.get("citas")
+
+                for i, cita in enumerate(citas, 1):
+                    texto_cita = cita["cita"]
+                    st.markdown(f'<div class="great-vibes-text">{i}. "{texto_cita}"</div>', unsafe_allow_html=True)
+                    st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
+                    st.markdown("<br>", unsafe_allow_html=True) 
         
     if st.button('Cita aleatoria del autor'):
         if nombre_autor:
-            data, df = get_cita_aleatoria(nombre_autor)
+            data = get_cita_aleatoria(nombre_autor)
             if data is None:
                 st.warning('No se han encontrado citas para este autor')
             else:

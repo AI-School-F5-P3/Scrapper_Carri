@@ -39,14 +39,12 @@ def get_citas_autor(nombre_autor):
     # Verificar el estado de la solicitud
     if response.status_code == 404:
             print(f'El autor "{nombre_autor}" no se encontró (Error 404).')
-            return None, None
+            return None
     
     elif response.status_code == 200:
         # La solicitud fue exitosa
         data = response.json()  # Convertir la respuesta JSON a un diccionario Python
-        flattened_data = flatten_json(data)
-        df = pd.DataFrame([flattened_data])
-        return data, df
+        return data
     
     else:
         # Ocurrió un error
@@ -76,14 +74,12 @@ def get_cita_aleatoria(nombre_autor):
     # Verificar el estado de la solicitud
     if response.status_code == 404:
             print(f'El autor "{nombre_autor}" no se encontró (Error 404).')
-            return None, None
+            return None
     
     elif response.status_code == 200:
         # La solicitud fue exitosa
         data = response.json()  # Convertir la respuesta JSON a un diccionario Python
-        flattened_data = flatten_json(data)
-        df = pd.DataFrame([flattened_data])
-        return data, df
+        return data
     
     else:
         # Ocurrió un error
