@@ -8,9 +8,8 @@ import crud
 import sys
 
 
-
-
 def handle_exception(exc_type, exc_value, exc_traceback):
+    # Función para la gestión de excepciones en main
     logger.error('Excecpión no recogida', exc_info = (exc_type, exc_value, exc_traceback))
 sys.exceptohook = handle_exception
 

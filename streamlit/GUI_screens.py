@@ -15,6 +15,8 @@ def home_screen():
     st.markdown(f"""<h1 style="text-align: center;"> {pen} {scroll} Quotter {scroll} {pen} </h1>""", unsafe_allow_html=True)
     st.markdown("""<h2 style="text-align: center;">Bienvenido/a a la página de gestión de su base de datos.</h2>""", unsafe_allow_html=True)
 
+    # Generación de una cita aleatoria cada vez que se inicia sesión en la aplicación
+
     if 'data' not in st.session_state:
         st.session_state.data = get_cita_dia()
 
@@ -37,7 +39,8 @@ def screen_autor():
     # Campo de entrada para el nombre del autor
     nombre_autor = st.text_input('Nombre y apellidos del autor/a')
 
-    idioma = st.selectbox('Idioma a mostrar', options = ['Inglés', 'Español', 'Portugués', 'Ukraniano'])
+    # Idioma en el que mostrar los resultados
+    idioma = st.selectbox('Idioma a mostrar', options = ['Inglés', 'Español', 'Portugués', 'Ucraniano'])
 
     if st.button('Mostrar todas las citas del autor/a'):
         if nombre_autor:
@@ -52,12 +55,13 @@ def screen_autor():
                 for i, cita in enumerate(citas, 1):
                     if idioma == 'Inglés':
                         texto_cita = cita["cita"]
+                        # st.markdown permite escribir el texto con la definición de tipo de fuente y tamaño que hemos definido en GUI.py
                         st.markdown(f'<div class="great-vibes-text">{i}. "{texto_cita}"</div>', unsafe_allow_html=True)
                         st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                         st.markdown("<br>", unsafe_allow_html=True) 
                     if idioma == 'Español':
                         texto_cita = cita["cita"]
-                        translator = GoogleTranslator(source='en', target='es')
+                        translator = GoogleTranslator(source='en', target='es') # Para usar el traductor fijar en source el idioma de entrada y en target el idioma de salida, las abreviaturas se pueden mirar en la página de translate.
                         cita_es = translator.translate(texto_cita)
                         st.markdown(f'<div class="great-vibes-text">{i}. "{cita_es}"</div>', unsafe_allow_html=True)
                         st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
@@ -69,7 +73,7 @@ def screen_autor():
                         st.markdown(f'<div class="great-vibes-text">{i}. "{cita_pt}"</div>', unsafe_allow_html=True)
                         st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                         st.markdown("<br>", unsafe_allow_html=True)
-                    if idioma == 'Ukraniano':
+                    if idioma == 'Ucraniano':
                         texto_cita = cita["cita"]
                         translator = GoogleTranslator(source='en', target='uk')
                         cita_uk = translator.translate(texto_cita)
@@ -99,7 +103,7 @@ def screen_autor():
                     translator = GoogleTranslator(source = 'en', target = 'pt')
                     cita_pt = translator.translate(cita)
                     st.markdown(f'<div class="great-vibes-text">{cita_pt} {nombre}.</div>', unsafe_allow_html=True)
-                elif idioma == 'Ukraniano':
+                elif idioma == 'Ucraniano':
                     translator = GoogleTranslator(source = 'en', target = 'uk')
                     cita_uk = translator.translate(cita)
                     st.markdown(f'<div class="great-vibes-text">{cita_uk} {nombre}.</div>', unsafe_allow_html=True)
@@ -111,7 +115,7 @@ def screen_autor():
         if nombre_autor:
             data = get_about_autor(nombre_autor)
             if data is None:
-                st.warning('No se han encontrado citas para este autor')
+                st.warning('No se han encontrado la biografía de ese autor')
             else:
                 logger.info(f'Obtenida about de {nombre_autor}')
                 nombre = data.get('nombre_autor')
@@ -126,7 +130,7 @@ def screen_autor():
                     translator = GoogleTranslator(source = 'en', target = 'pt')
                     about_pt = translator.translate(about)
                     st.markdown(f'<div class="great-vibes-text">{about_pt} {nombre}.</div>', unsafe_allow_html=True)
-                elif idioma == 'Ukraniano':
+                elif idioma == 'Ucraniano':
                     translator = GoogleTranslator(source = 'en', target = 'uk')
                     about_uk = translator.translate(about)
                     st.markdown(f'<div class="great-vibes-text">{about_uk} {nombre}.</div>', unsafe_allow_html=True)
@@ -138,9 +142,9 @@ def screen_tags():
     scroll = "\U0001F4DC"
 
     st.markdown(f"""<h1 style="text-align: center;"> {pen} {scroll} Quotter {scroll} {pen} </h1>""", unsafe_allow_html=True)
-    st.markdown("""<h2 style="text-align: center;">Gestión de profesores</h2>""", unsafe_allow_html=True)
+    st.markdown("""<h2 style="text-align: center;">Búsqueda de citas por tags</h2>""", unsafe_allow_html=True)
 
-    idioma = st.selectbox('Idioma a mostrar', options = ['Inglés', 'Español', 'Portugués', 'Ukraniano'])
+    idioma = st.selectbox('Idioma a mostrar', options = ['Inglés', 'Español', 'Portugués', 'Ucraniano'])
 
     lista_de_tags = ['None'] + get_all_tags()
 
@@ -190,7 +194,7 @@ def screen_tags():
                     st.markdown(f'<div class="great-vibes-text">{i}. "{cita_pt} {nombre_autor}"</div>', unsafe_allow_html=True)
                     st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                     st.markdown("<br>", unsafe_allow_html=True)
-                elif idioma == 'Ukraniano':
+                elif idioma == 'Ucraniano':
                     translator = GoogleTranslator(source='en', target='uk')
                     cita_uk = translator.translate(texto_cita)
                     st.markdown(f'<div class="great-vibes-text">{i}. "{cita_uk}" {nombre_autor}</div>', unsafe_allow_html=True)
@@ -204,9 +208,9 @@ def screen_search():
     pen = "\U0001F58B"
     scroll = "\U0001F4DC"
     st.markdown(f"""<h1 style="text-align: center;"> {pen} {scroll} Quotter {scroll} {pen} </h1>""", unsafe_allow_html=True)
-    st.markdown("""<h2 style="text-align: center;">Gestión de finanzas</h2>""", unsafe_allow_html=True)
+    st.markdown("""<h2 style="text-align: center;">Búsqueda de citas por palabra clave</h2>""", unsafe_allow_html=True)
 
-    idioma = st.selectbox('Idioma a mostrar', options = ['Inglés', 'Español', 'Portugués', 'Ukraniano'])
+    idioma = st.selectbox('Idioma a mostrar', options = ['Inglés', 'Español', 'Portugués', 'Ucraniano'])
 
     palabra_clave = st.text_input('Palabra a buscar: ')
     
@@ -237,7 +241,7 @@ def screen_search():
                         st.markdown(f'<div class="great-vibes-text">{i}. "{cita_pt} {nombre_autor}"</div>', unsafe_allow_html=True)
                         st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                         st.markdown("<br>", unsafe_allow_html=True)
-                    elif idioma == 'Ukraniano':
+                    elif idioma == 'Ucraniano':
                         translator = GoogleTranslator(source='en', target='uk')
                         cita_uk = translator.translate(texto_cita)
                         st.markdown(f'<div class="great-vibes-text">{i}. "{cita_uk}" {nombre_autor}</div>', unsafe_allow_html=True)

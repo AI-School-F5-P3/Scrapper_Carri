@@ -16,6 +16,11 @@ DB_PORT = os.getenv('DB_PORT')
 SCHEMA_NAME = os.getenv("DB_SCHEMA")
 
 def insert_authors_to_db():
+    '''
+    Función para insertar los auotres y sus about en la base de datos. Se fija en primer lugar la dirección donde se están guardando los archivos de datos obtenidos por la araña de autores y se registran errores.
+    Una vez se confirman los datos y se conecta a la base de datos, se van insertando por iteración los autores y sus about en la tabla de autores de la base de datos, gestionando que si existe un conflicto en el id (que se repita algún autor), actualice el about por si ha habido cambios desde la última ejecución pero que no se repitan en la tabla los autores.
+    Se registran errores y si todo esta bien se ejecuta la función y se cierra la conexión con la base de datos.
+    '''
     file_path = '/app/data/data_authors.json'
 
     if not os.path.isfile(file_path):
@@ -66,7 +71,7 @@ def insert_authors_to_db():
         logger.info('Cerrada la conexión con la base de datos')
 
     os.remove(file_path)
-    logger.info('Eliminado archivo JSON')
+    logger.info('Eliminado archivo JSON') # Se elimina el archivo JSON para evitar que se actualice con demasiados datos si se ejecuta la spider multiples veces sin control.
 
 insert_authors_to_db()
 

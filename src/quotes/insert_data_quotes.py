@@ -16,6 +16,11 @@ DB_PORT = os.getenv('DB_PORT')
 SCHEMA_NAME = os.getenv("DB_SCHEMA")
 
 def insert_quotes_to_db():
+    '''
+    Función para insertar las citas con sus etiquetas y sus autores en la base de datos. Se fija en primer lugar la dirección donde se están guardando los archivos de datos obtenidos por la araña de citas y se registran errores.
+    Una vez se confirman los datos y se conecta a la base de datos, se van insertando por iteración las diferentes tags que existen en la página de scrap en la tabla de tags. De esta forma tenemos una tabla de referencia con tags por id. Se gestionan los conflictos sin hacer nada para que no se repitan las tags. Se extraen los ids de los autores de la tabla de autores utilizando los nombres extraídos por la araña. Se incorporan a la base de datos las citas, los ids de autores que se han obtenido y por útlimo se insertan en la tabla intermedia quote_tags los ids de cita y tag, para gestionar la relación de muchos a muchos que tienen las citas y las tags.
+    Se registran errores y si todo esta bien se ejecuta la función y se cierra la conexión con la base de datos.
+    '''
     file_path = '/app/data/data_quotes.json'
 
     if not os.path.isfile(file_path):
@@ -109,6 +114,6 @@ def insert_quotes_to_db():
         logger.info('Cerrada la conexión con la base de datos')
 
     os.remove(file_path)
-    logger.info('Eliminado archivo JSON')
+    logger.info('Eliminado archivo JSON') # Se elimina el archivo JSON para evitar que se actualice con demasiados datos si se ejecuta la spider multiples veces sin control.
 
 insert_quotes_to_db()

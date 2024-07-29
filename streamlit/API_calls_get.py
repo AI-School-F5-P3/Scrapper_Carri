@@ -3,18 +3,6 @@ import pandas as pd
 from urllib.parse import urlencode
 from logging_config import logger
 
-def flatten_json(data, prefix=''):
-    result = {}
-    for key, value in data.items():
-        new_key = f"{prefix}{key}"
-        if isinstance(value, dict):
-            result.update(flatten_json(value, new_key + '_'))
-        elif isinstance(value, list):
-            for i, item in enumerate(value):
-                result.update(flatten_json(item, f"{new_key}{i}_"))
-        else:
-            result[new_key] = value
-    return result
 
 def get_citas_autor(nombre_autor):
     base_url = 'http://localhost:8000/autor/citas'

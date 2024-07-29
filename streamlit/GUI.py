@@ -36,7 +36,7 @@ if 'logged_in' not in st.session_state:
 
 st.set_page_config(layout="wide")
 
-#css para los textos:
+#css para los textos: se definen diferentes fuentes y tamaños para personalizar la interfaz
 font_css = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
@@ -58,10 +58,10 @@ h1, h2 {
 </style>
 """
 
-# Agrega el CSS a tu aplicación de Streamlit
+# Se añade el esitlo css
 st.markdown(font_css, unsafe_allow_html=True)
 
-# Custom HTML/CSS for the banner
+# Banner
 custom_html = """
 <div class="banner">
     <img src="https://s26162.pcdn.co/wp-content/uploads/2019/07/books.jpg" alt="Banner Image" height="200" width="1000">
@@ -124,7 +124,7 @@ def apply_custom_css():
         </style>
     """, unsafe_allow_html=True)
 
-# Display the custom HTML
+# Mostrar el html customizado donde se han definido los colores para la aplicación
 st.components.v1.html(custom_html)
 apply_custom_css()
 

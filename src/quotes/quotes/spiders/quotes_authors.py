@@ -3,6 +3,12 @@ import html
 from logging_config import logger
 
 class AuthorsSpider(scrapy.Spider):
+    '''
+    Clase que define el comportamiento de la araña de autores.
+    Se definen custom_settings para guardar los resultados en un json en una carpeta concreta para luego utilizarla en la inserción de datos a la base de datos.
+    start_request comienza el proceso de scrap con la URL de la página.
+    parse define el proceso de scrap, se incluye una flag para verificar si se están encontrando autores en la búsqueda.
+    '''
     name = "authors"
 
     custom_settings = {
@@ -24,7 +30,10 @@ class AuthorsSpider(scrapy.Spider):
         yield scrapy.Request(url=URL, callback=self.parse)
 
     def parse(self, response):
-        # Extraer URLs de las páginas de los autores desde las citas
+        '''
+        Se buscan las urls para los auotres especificando donde se encuentran en el código html fuente de la página. Para acceder a ello se requiere de usar una herramiento tipo "inspeccionar elemento" o "inspeccionar codigo fuente" en el navegador que se esté utilizando (Brave, Firefox, Chrome...)
+        Se incluye además una función para continuar scrapeando en la siguiente página de la web, si existe.
+        '''
         found_authors = False  # Bandera para verificar si se encontraron autores
         for quote in response.css('div.quote'):
             author = quote.css('span small.author::text').get()
