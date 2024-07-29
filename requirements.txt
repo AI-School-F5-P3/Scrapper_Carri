@@ -13,3 +13,4 @@ numpy==2.0.0
 pandas==2.2.2
 streamlit==1.36.0
 deep_translator==1.11.4
+seaborn==0.13.2

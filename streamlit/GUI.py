@@ -1,6 +1,7 @@
 import streamlit as st
+import random
 from logging_config import logger
-from GUI_screens import change_screen, home_screen, screen_autor, screen_tags, screen_search
+from GUI_screens import change_screen, home_screen, screen_autor, screen_tags, screen_search, screen_stats
 
 
 # Función para definir una pantalla de login inicial
@@ -11,9 +12,12 @@ def login():
     pen = "\U0001F58B"
     scroll = "\U0001F4DC"
     
+    posibles_entradas = ['Deja que la cultura entre en ti', 'Culturizate, aquí y ahora', 'Saber leer no debería ser un requisito para parecer listo', 'La app que de verdad te garantiza citas', 'La única app en la que puedes confiar en internet', 'Citas robadas de forma completamente legal']
+
+    cita_entrada = random.choice(posibles_entradas)
 
     st.markdown(f"""<h1 style="text-align: center;"> {pen} {scroll} Quotter {scroll} {pen} </h1>""", unsafe_allow_html=True)
-    st.markdown("""<h2 style="text-align: center;">Bienvenido/a a la página de gestión de su base de datos.</h2>""", unsafe_allow_html=True)
+    st.markdown(f"""<h2 style="text-align: center;">{cita_entrada}.</h2>""", unsafe_allow_html=True)
 
     st.sidebar.subheader("Login")
     username = st.sidebar.text_input("Usuario")
@@ -24,6 +28,7 @@ def login():
             st.session_state.logged_in = True
             logger.info(f'Se ha iniciado sesión en streamlit')
             st.success("¡Inicio de sesión exitoso!")
+            st.rerun()
         else:
             logger.error(f'Inicio de sesión en Streamlit fallido')
             st.error("Usuario o contraseña incorrectos.")
@@ -81,48 +86,47 @@ custom_html = """
 
 def apply_custom_css():
     st.markdown("""
-        <style>
-        .button-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 10px;
-        }
-        .stButton button {
-            width: 220px;
-            height: 60px;
-            background-color: #6943ff; /* Purple background */
-            color: white; /* Text color */
-            border: 1px solid #5227ff; /* Border color */
-            border-radius: 8px;
-            font-size: 18px; /* Font size */
-            margin: 5px;
-        }
-        .stButton button:hover {
-            background-color: #5e3fe0; /* Darker purple on hover */
-        }
-        /* Streamlit dark theme inspired by Shades of Purple */
-        body {
-            background-color: #2d2a55; /* Dark purple background */
-            color: #e0e0e0; /* Light text */
-        }
-        .stMarkdown {
-            color: #e0e0e0; /* Light text */
-        }
-        .css-18ni7ap, .css-1d391kg {
-            background-color: #2d2a55; /* Dark purple background */
-            color: #e0e0e0; /* Light text */
-        }
-        .css-1d391kg p {
-            color: #e0e0e0; /* Light text */
-        }
-        .css-1v0mbdj a {
-            color: #ff9d00; /* Link color */
-        }
-        .css-1v0mbdj a:hover {
-            color: #ff9900; /* Link hover color */
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    <style>
+    /* Aplicar fondo al contenedor principal y cuerpo de la aplicación */
+    .css-1v3fvcr {
+        background-color: #f4f1de; /* Parchment-like background */
+    }
+    .css-1v0mbdj {
+        background-color: #f4f1de; /* Parchment-like background */
+    }
+    body {
+        background-color: #f4f1de; /* Parchment-like background */
+        color: #FFFFFF; /* Dark brown text */
+    }
+    .stMarkdown {
+        color: #FFFFFF; /* Dark brown text */
+    }
+    .button-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+    .stButton button {
+        width: 220px;
+        height: 60px;
+        background-color: #8B4513; /* Brown background */
+        color: white; /* Text color */
+        border: 1px solid #A0522D; /* Darker brown border color */
+        border-radius: 8px;
+        font-size: 18px; /* Font size */
+        margin: 5px;
+    }
+    .stButton button:hover {
+        background-color: #A0522D; /* Darker brown on hover */
+    }
+    .css-1v0mbdj a {
+        color: #8B0000; /* Deep red link color */
+    }
+    .css-1v0mbdj a:hover {
+        color: #B22222; /* Firebrick red on hover */
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # Mostrar el html customizado donde se han definido los colores para la aplicación
 st.components.v1.html(custom_html)
@@ -142,6 +146,8 @@ else:
         change_screen('screen_tags')
     if st.sidebar.button("Buscador de citas"):
         change_screen('screen_search')
+    if st.sidebar.button("Estadísticas"):
+        change_screen('screen_stats')
 
     # Renderización de las pantallas
     if st.session_state.screen == 'home':
@@ -152,3 +158,5 @@ else:
         screen_tags()
     elif st.session_state.screen == 'screen_search':
         screen_search()
+    elif st.session_state.screen == 'screen_stats':
+        screen_stats()

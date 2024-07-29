@@ -1,8 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy import func
 from fastapi import HTTPException
-from typing import List
+from typing import List, Dict, Any
 from logging_config import logger
 import random
 import models
@@ -259,3 +260,37 @@ async def buscar_palabra_clave(
     logger.info(f'Recuperadas citas que contienen la palabra clave "{palabra}"')
     
     return quotes_data
+
+async def stats(db: AsyncSession) -> Dict[str, Any]:
+    try:
+        # Consultar el número de citas por autor
+        query_autores = (
+            select(models.Author.author, func.count(models.Quote.id).label('num_citas'))
+            .join(models.Quote, models.Author.id == models.Quote.author_id)
+            .group_by(models.Author.author)
+        )
+        result_autores = await db.execute(query_autores)
+        citas_por_autor = [{autor: num_citas} for autor, num_citas in result_autores.all()]
+
+        # Consultar el número de citas por tag
+        query_tags = (
+            select(models.Tag.tag, func.count(models.Quote.id).label('num_citas'))
+            .join(models.quote_tag_table, models.Tag.id == models.quote_tag_table.c.tag_id)
+            .join(models.Quote, models.Quote.id == models.quote_tag_table.c.quote_id)
+            .group_by(models.Tag.tag)
+        )
+        result_tags = await db.execute(query_tags)
+        citas_por_tag = [{tag: num_citas} for tag, num_citas in result_tags.all()]
+
+        # Construir el JSON de respuesta
+        estadisticas = {
+            "citas_por_autor": citas_por_autor,
+            "citas_por_tag": citas_por_tag,
+        }
+
+        logger.info('Recuperadas estadísticas de citas por autor y tag')
+        return estadisticas
+    
+    except Exception as e:
+        logger.error(f'Error al recuperar las estadísticas de citas: {e}')
+        raise HTTPException(status_code=500, detail="Error al recuperar las estadísticas de citas")

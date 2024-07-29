@@ -1,11 +1,10 @@
 import requests
-import pandas as pd
 from urllib.parse import urlencode
 from logging_config import logger
 
 
 def get_citas_autor(nombre_autor):
-    base_url = 'http://localhost:8000/autor/citas'
+    base_url = 'http://api:8000/autor/citas'
 
     # Nombre del alumno y parámetros adicionales
     params = {
@@ -41,7 +40,7 @@ def get_citas_autor(nombre_autor):
         print(f'Error al hacer la solicitud: {response.status_code}')
 
 def get_cita_aleatoria(nombre_autor):
-    base_url = 'http://localhost:8000/autor/cita_random'
+    base_url = 'http://api:8000/autor/cita_random'
 
     params = {
         'nombre_autor': nombre_autor,
@@ -77,7 +76,7 @@ def get_cita_aleatoria(nombre_autor):
 
 
 def get_cita_dia():
-    base_url = 'http://localhost:8000/cita_dia'
+    base_url = 'http://api:8000/cita_dia'
     
     # Encabezados de la solicitud
     headers = {
@@ -100,7 +99,7 @@ def get_cita_dia():
 
 
 def get_about_autor(nombre_autor):
-    base_url = 'http://localhost:8000/autor/about'
+    base_url = 'http://api:8000/autor/about'
 
     params = {
         'nombre_autor': nombre_autor,
@@ -130,7 +129,7 @@ def get_about_autor(nombre_autor):
         return data
 
 def get_all_tags():
-    url = 'http://localhost:8000/tags/list'
+    url = 'http://api:8000/tags/list'
 
     headers = {
         'accept': 'application/json'
@@ -149,7 +148,7 @@ def get_all_tags():
 
 
 def get_cita_tags(tag_1, tag_2=None, tag_3=None, tag_4=None, tag_5=None, tag_6=None, tag_7=None, tag_8=None, nombre_autor=None):
-    url = 'http://localhost:8000/tags/cita'
+    url = 'http://api:8000/tags/cita'
 
     # Construir los parámetros de consulta
     params = {
@@ -183,7 +182,7 @@ def get_cita_tags(tag_1, tag_2=None, tag_3=None, tag_4=None, tag_5=None, tag_6=N
         response.raise_for_status() 
 
 def get_palabra_clave(palabra_clave):
-    base_url = 'http://localhost:8000/word'
+    base_url = 'http://api:8000/word'
 
     params = {
         'palabra': palabra_clave,
@@ -211,7 +210,20 @@ def get_palabra_clave(palabra_clave):
         data = response.json()  # Convertir la respuesta JSON a un diccionario Python
         return data
 
+def get_stats():
+    base_url = 'http://api:8000/stats'
 
+    headers = {
+        'accept': 'application/json'
+    }
 
+    # Realizar la solicitud GET
+    response = requests.get(base_url, headers=headers)
 
-
+    if response.status_code == 200:
+        data = response.json()
+        return data
+    else:
+        # Ocurrió un error
+        logger.error(f'Error al hacer la solicitud: {response.status_code}')
+        print(f'Error al hacer la solicitud: {response.status_code}')

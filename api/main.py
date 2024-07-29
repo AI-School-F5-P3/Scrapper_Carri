@@ -115,6 +115,12 @@ async def buscar_palabra_clave_route(
 ):
     return await crud.buscar_palabra_clave(palabra, db)
 
+@app.get("/stats/")
+async def stats_route(
+    db:AsyncSession = Depends(get_db)
+):
+    return await crud.stats(db)
+
 if __name__ == "__main__":
     logger.info("incio de la aplicacion")
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

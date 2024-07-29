@@ -1,8 +1,10 @@
 import streamlit as st
+import seaborn as sns
 import pandas as pd
+import matplotlib.pyplot as plt
 from logging_config import logger
 from deep_translator import GoogleTranslator
-from API_calls_get import get_citas_autor, get_cita_aleatoria, get_cita_dia, get_about_autor, get_all_tags, get_cita_tags, get_palabra_clave
+from API_calls_get import get_citas_autor, get_cita_aleatoria, get_cita_dia, get_about_autor, get_all_tags, get_cita_tags, get_palabra_clave, get_stats
 
 def change_screen(new_screen):
     st.session_state.screen = new_screen
@@ -13,7 +15,8 @@ def home_screen():
     
 
     st.markdown(f"""<h1 style="text-align: center;"> {pen} {scroll} Quotter {scroll} {pen} </h1>""", unsafe_allow_html=True)
-    st.markdown("""<h2 style="text-align: center;">Bienvenido/a a la página de gestión de su base de datos.</h2>""", unsafe_allow_html=True)
+    st.markdown("""<h2 style="text-align: center;">Bienvenido/a Quotter, la app nº1 en citas célebres.</h2>""", unsafe_allow_html=True)
+    st.markdown("""<h3 style="text-align: center;">Cita del día:</h2>""", unsafe_allow_html=True)
 
     # Generación de una cita aleatoria cada vez que se inicia sesión en la aplicación
 
@@ -251,6 +254,54 @@ def screen_search():
         else:
             st.warning('Se debe incluir una palabra clave para iniciar la búsqueda.')
 
+def screen_stats():
+    pen = "\U0001F58B"
+    scroll = "\U0001F4DC"
+    st.markdown(f"""<h1 style="text-align: center;"> {pen} {scroll} Quotter {scroll} {pen} </h1>""", unsafe_allow_html=True)
+    st.markdown("""<h2 style="text-align: center;">Estadísticas de citas</h2>""", unsafe_allow_html=True)
+    st.markdown("""<h3 style="text-align: center;">Solo se incluyen aquellos casos con más de 2 citas</h2>""", unsafe_allow_html=True)
+
+    data = get_stats()
+
+    # Convertir citas por autor a DataFrame, filtrando aquellos con num_citas >= 2
+    citas_por_autor_list = []
+    for item in data['citas_por_autor']:
+        for author, count in item.items():
+            if count >= 2:
+                citas_por_autor_list.append({'author': author, 'num_citas': count})
+
+    df_citas_por_autor = pd.DataFrame(citas_por_autor_list)
+
+    # Convertir citas por tag a DataFrame, filtrando aquellos con num_citas >= 2
+    citas_por_tag_list = []
+    for item in data['citas_por_tag']:
+        for tag, count in item.items():
+            if count >= 2:
+                citas_por_tag_list.append({'tag': tag, 'num_citas': count})
+
+    df_citas_por_tag = pd.DataFrame(citas_por_tag_list)
+
+    df_citas_por_autor = df_citas_por_autor.sort_values(by='num_citas', ascending=False)
+    df_citas_por_tag = df_citas_por_tag.sort_values(by='num_citas', ascending=False)
+
+    # Crear gráficos de barras con Seaborn
+    sns.set_theme(style="white", palette = 'pastel')
+
+    # Gráfico de citas por autor
+    fig1, ax1 = plt.subplots(figsize=(12, 8))
+    sns.barplot(x='num_citas', y='author', hue = 'author', data=df_citas_por_autor, palette='flare', ax = ax1)
+    ax1.set_title('Número de Citas por Autor')
+    ax1.set_xlabel('Número de Citas')
+    ax1.set_ylabel('Autor')
+    st.pyplot(fig1)
+
+    # Gráfico de citas por tag
+    fig2, ax2 = plt.subplots(figsize=(12, 8))
+    sns.barplot(x='num_citas', y='tag', hue = 'tag', data=df_citas_por_tag, palette='flare', ax = ax2)
+    ax2.set_title('Número de Citas por Tag')
+    ax2.set_xlabel('Número de Citas')
+    ax2.set_ylabel('Tag')
+    st.pyplot(fig2)
 
 
 
