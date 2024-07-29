@@ -59,28 +59,28 @@ def screen_autor():
                     if idioma == 'Inglés':
                         texto_cita = cita["cita"]
                         # st.markdown permite escribir el texto con la definición de tipo de fuente y tamaño que hemos definido en GUI.py
-                        st.markdown(f'<div class="great-vibes-text">{i}. "{texto_cita}"</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="great-vibes-text">{i}. {texto_cita}</div>', unsafe_allow_html=True)
                         st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                         st.markdown("<br>", unsafe_allow_html=True) 
                     if idioma == 'Español':
                         texto_cita = cita["cita"]
                         translator = GoogleTranslator(source='en', target='es') # Para usar el traductor fijar en source el idioma de entrada y en target el idioma de salida, las abreviaturas se pueden mirar en la página de translate.
                         cita_es = translator.translate(texto_cita)
-                        st.markdown(f'<div class="great-vibes-text">{i}. "{cita_es}"</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="great-vibes-text">{i}. {cita_es}</div>', unsafe_allow_html=True)
                         st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                         st.markdown("<br>", unsafe_allow_html=True) 
                     if idioma == 'Portugués':
                         texto_cita = cita["cita"]
                         translator = GoogleTranslator(source='en', target='pt')
                         cita_pt = translator.translate(texto_cita)
-                        st.markdown(f'<div class="great-vibes-text">{i}. "{cita_pt}"</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="great-vibes-text">{i}. {cita_pt}</div>', unsafe_allow_html=True)
                         st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                         st.markdown("<br>", unsafe_allow_html=True)
                     if idioma == 'Ucraniano':
                         texto_cita = cita["cita"]
                         translator = GoogleTranslator(source='en', target='uk')
                         cita_uk = translator.translate(texto_cita)
-                        st.markdown(f'<div class="great-vibes-text">{i}. "{cita_uk}"</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="great-vibes-text">{i}. {cita_uk}</div>', unsafe_allow_html=True)
                         st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                         st.markdown("<br>", unsafe_allow_html=True) 
         else:
@@ -182,25 +182,25 @@ def screen_tags():
                 texto_cita = cita["cita"]
 
                 if idioma == 'Inglés':
-                    st.markdown(f'<div class="great-vibes-text">{i}. "{texto_cita}" {nombre_autor}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="great-vibes-text">{i}. {texto_cita} {nombre_autor}</div>', unsafe_allow_html=True)
                     st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                     st.markdown("<br>", unsafe_allow_html=True)
                 elif idioma == 'Español':
                     translator = GoogleTranslator(source='en', target='es')
                     cita_es = translator.translate(texto_cita)
-                    st.markdown(f'<div class="great-vibes-text">{i}. "{cita_es}" {nombre_autor}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="great-vibes-text">{i}. {cita_es} {nombre_autor}</div>', unsafe_allow_html=True)
                     st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                     st.markdown("<br>", unsafe_allow_html=True)
                 elif idioma == 'Portugués':
                     translator = GoogleTranslator(source='en', target='pt')
                     cita_pt = translator.translate(texto_cita)
-                    st.markdown(f'<div class="great-vibes-text">{i}. "{cita_pt} {nombre_autor}"</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="great-vibes-text">{i}. {cita_pt} {nombre_autor}</div>', unsafe_allow_html=True)
                     st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                     st.markdown("<br>", unsafe_allow_html=True)
                 elif idioma == 'Ucraniano':
                     translator = GoogleTranslator(source='en', target='uk')
                     cita_uk = translator.translate(texto_cita)
-                    st.markdown(f'<div class="great-vibes-text">{i}. "{cita_uk}" {nombre_autor}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="great-vibes-text">{i}. {cita_uk} {nombre_autor}</div>', unsafe_allow_html=True)
                     st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -229,25 +229,25 @@ def screen_search():
                     texto_cita = cita["cita"]
 
                     if idioma == 'Inglés':
-                        st.markdown(f'<div class="great-vibes-text">{i}. "{texto_cita}" {nombre_autor}</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="great-vibes-text">{i}. {texto_cita} {nombre_autor}</div>', unsafe_allow_html=True)
                         st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                         st.markdown("<br>", unsafe_allow_html=True)
                     elif idioma == 'Español':
                         translator = GoogleTranslator(source='en', target='es')
                         cita_es = translator.translate(texto_cita)
-                        st.markdown(f'<div class="great-vibes-text">{i}. "{cita_es}" {nombre_autor}</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="great-vibes-text">{i}. {cita_es} {nombre_autor}</div>', unsafe_allow_html=True)
                         st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                         st.markdown("<br>", unsafe_allow_html=True)
                     elif idioma == 'Portugués':
                         translator = GoogleTranslator(source='en', target='pt')
                         cita_pt = translator.translate(texto_cita)
-                        st.markdown(f'<div class="great-vibes-text">{i}. "{cita_pt} {nombre_autor}"</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="great-vibes-text">{i}. {cita_pt} {nombre_autor}</div>', unsafe_allow_html=True)
                         st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                         st.markdown("<br>", unsafe_allow_html=True)
                     elif idioma == 'Ucraniano':
                         translator = GoogleTranslator(source='en', target='uk')
                         cita_uk = translator.translate(texto_cita)
-                        st.markdown(f'<div class="great-vibes-text">{i}. "{cita_uk}" {nombre_autor}</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="great-vibes-text">{i}. {cita_uk} {nombre_autor}</div>', unsafe_allow_html=True)
                         st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                         st.markdown("<br>", unsafe_allow_html=True)
 
