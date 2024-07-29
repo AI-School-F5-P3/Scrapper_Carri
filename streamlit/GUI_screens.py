@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from logging_config import logger
 from deep_translator import GoogleTranslator
-from API_calls_get import get_citas_autor, get_cita_aleatoria, get_cita_dia, get_about_autor, get_all_tags, get_cita_tags
+from API_calls_get import get_citas_autor, get_cita_aleatoria, get_cita_dia, get_about_autor, get_all_tags, get_cita_tags, get_palabra_clave
 
 def change_screen(new_screen):
     st.session_state.screen = new_screen
@@ -190,7 +190,7 @@ def screen_tags():
                     st.markdown(f'<div class="great-vibes-text">{i}. "{cita_pt} {nombre_autor}"</div>', unsafe_allow_html=True)
                     st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
                     st.markdown("<br>", unsafe_allow_html=True)
-                elif idioma == 'Ucraniano':
+                elif idioma == 'Ukraniano':
                     translator = GoogleTranslator(source='en', target='uk')
                     cita_uk = translator.translate(texto_cita)
                     st.markdown(f'<div class="great-vibes-text">{i}. "{cita_uk}" {nombre_autor}</div>', unsafe_allow_html=True)
@@ -206,7 +206,46 @@ def screen_search():
     st.markdown(f"""<h1 style="text-align: center;"> {pen} {scroll} Quotter {scroll} {pen} </h1>""", unsafe_allow_html=True)
     st.markdown("""<h2 style="text-align: center;">Gestión de finanzas</h2>""", unsafe_allow_html=True)
 
-    st.write('En construccion')
+    idioma = st.selectbox('Idioma a mostrar', options = ['Inglés', 'Español', 'Portugués', 'Ukraniano'])
+
+    palabra_clave = st.text_input('Palabra a buscar: ')
+    
+    if st.button('Buscar'):
+        if palabra_clave:
+            data = get_palabra_clave(palabra_clave)
+            if data is None:
+                logger.error('No se han encontrado citas para esta palabra clave')
+                st.warning('No se han encontrado citas para esta palabra clave')
+            else:
+                for i, cita in enumerate(data, 1):
+                    nombre_autor = cita["nombre_autor"]
+                    texto_cita = cita["cita"]
+
+                    if idioma == 'Inglés':
+                        st.markdown(f'<div class="great-vibes-text">{i}. "{texto_cita}" {nombre_autor}</div>', unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
+                        st.markdown("<br>", unsafe_allow_html=True)
+                    elif idioma == 'Español':
+                        translator = GoogleTranslator(source='en', target='es')
+                        cita_es = translator.translate(texto_cita)
+                        st.markdown(f'<div class="great-vibes-text">{i}. "{cita_es}" {nombre_autor}</div>', unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
+                        st.markdown("<br>", unsafe_allow_html=True)
+                    elif idioma == 'Portugués':
+                        translator = GoogleTranslator(source='en', target='pt')
+                        cita_pt = translator.translate(texto_cita)
+                        st.markdown(f'<div class="great-vibes-text">{i}. "{cita_pt} {nombre_autor}"</div>', unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
+                        st.markdown("<br>", unsafe_allow_html=True)
+                    elif idioma == 'Ukraniano':
+                        translator = GoogleTranslator(source='en', target='uk')
+                        cita_uk = translator.translate(texto_cita)
+                        st.markdown(f'<div class="great-vibes-text">{i}. "{cita_uk}" {nombre_autor}</div>', unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)  # Añadir espaciado entre citas
+                        st.markdown("<br>", unsafe_allow_html=True)
+
+        else:
+            st.warning('Se debe incluir una palabra clave para iniciar la búsqueda.')
 
 
 

@@ -219,3 +219,41 @@ async def buscar_lista_citas(
         # Manejar excepciones y registrar el error
         logger.error(f'Error al recuperar las etiquetas: {e}')
         raise HTTPException(status_code=500, detail="Error al recuperar las etiquetas")
+    
+
+async def buscar_palabra_clave(
+    palabra: str,
+    db: AsyncSession
+):
+    if not palabra.strip():
+        logger.error('Se debe proporcionar una palabra clave válida')
+        raise HTTPException(status_code=400, detail="Se debe proporcionar una palabra clave válida")
+    
+    # Construir la consulta para buscar citas que contengan la palabra clave
+    query = (
+        select(models.Quote)
+        .options(selectinload(models.Quote.author))
+        .filter(models.Quote.quote.ilike(f'%{palabra}%'))
+    )
+    
+    # Ejecutar la consulta de forma asíncrona
+    result = await db.execute(query)
+    quotes = result.scalars().all()
+    
+    # Verificar si se encontraron citas
+    if not quotes:
+        logger.info('No se encontraron citas con la palabra clave proporcionada')
+        raise HTTPException(status_code=404, detail="No se encontraron citas con la palabra clave proporcionada")
+    
+    # Formatear la respuesta para incluir las citas con la palabra clave
+    quotes_data = [
+        {
+            "nombre_autor": quote.author.author,  # Dado que author no puede ser None
+            "cita": quote.quote
+        }
+        for quote in quotes
+    ]
+    
+    logger.info(f'Recuperadas citas que contienen la palabra clave "{palabra}"')
+    
+    return quotes_data

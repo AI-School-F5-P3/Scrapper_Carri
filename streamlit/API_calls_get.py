@@ -194,31 +194,36 @@ def get_cita_tags(tag_1, tag_2=None, tag_3=None, tag_4=None, tag_5=None, tag_6=N
     else:
         response.raise_for_status() 
 
+def get_palabra_clave(palabra_clave):
+    base_url = 'http://localhost:8000/word'
 
-def get_all_alumnos():
-    base_url = 'http://api:8000/alumnos/all'
+    params = {
+        'palabra': palabra_clave,
+    }
 
-    response = requests.get(base_url)
-    if response.status_code == 200:
-        data = response.json()
-        df = pd.DataFrame(data)
-        return data, df
-    else:
-        # Ocurrió un error
-        logger.error(f'Error al hacer la solicitud: {response.status_code}')
-        print(f'Error al hacer la solicitud: {response.status_code}')
+    # Construir la URL completa con los parámetros
+    url = f'{base_url}'
+    query_params = '&'.join([f'{key}={value.replace(" ", "%20")}' for key, value in params.items()])
+    url = f'{url}?{query_params}'
+
+    headers = {
+        'accept': 'application/json'
+    }
+
+    # Realizar la solicitud GET
+    response = requests.get(url, headers=headers)
+
+    # Verificar el estado de la solicitud
+    if response.status_code == 404:
+            print(f'No se encuentran citas con la palabra {palabra_clave}.')
+            return None
+    
+    elif response.status_code == 200:
+        # La solicitud fue exitosa
+        data = response.json()  # Convertir la respuesta JSON a un diccionario Python
+        return data
 
 
-def get_all_profesores():
-    base_url = 'http://api:8000/profesores/all'
 
-    response = requests.get(base_url)
-    if response.status_code == 200:
-        data = response.json()
-        df = pd.DataFrame(data)
-        return data, df
-    else:
-        # Ocurrió un error
-        logger.error(f'Error al hacer la solicitud: {response.status_code}')
-        print(f'Error al hacer la solicitud: {response.status_code}')
+
 
