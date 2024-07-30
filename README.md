@@ -5,10 +5,10 @@ Crear en primer lugar el archivo .env en aquellos ficheros que contienen un dock
   - DB_TYPE=postgresql+asyncpg
   - DB_HOST=quotes-db # Por defecto el docker de la base de datos se construye con este nombre
   - DB_PORT=5432
-  - DB_NAME= quotes_name
-  - DB_SCHEMA= schema_name
-  - DB_USER= user
-  - DB_PASSWORD = password
+  - DB_NAME= quotes
+  - DB_SCHEMA= quotes
+  - DB_USER= admin_user
+  - DB_PASSWORD = 1234
   - SECRET_KEY= secret_key
   - DEBUG=true
 
