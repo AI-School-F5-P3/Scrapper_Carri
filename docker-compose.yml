@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: quotes-db
+    restart: always
+    env_file:
+      - .env  # Ruta al archivo .env relativa al directorio donde se encuentra el docker-compose.yml
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+    networks:
+      - mynetwork
+
+  scrapy:
+    build:
+      context: ./src/quotes  # Ruta al directorio del proyecto de Scrapy
+      dockerfile: Dockerfile  # Ruta al Dockerfile dentro del contexto ./scrapy_project
+    container_name: scrapy-container
+    restart: on-failure
+    env_file:
+      - .env  # Si el proyecto de Scrapy necesita variables de entorno
+    depends_on:
+      - postgres
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - mynetwork
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile  # Ruta al Dockerfile dentro del contexto ./src
+    container_name: fastapi-app
+    restart: always
+    env_file:
+      - .env  # Ruta al archivo .env relativa al directorio donde se encuentra el docker-compose.yml
+    ports:
+      - "8000:8000"
+    depends_on:
+      - scrapy
+      - postgres
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - mynetwork
+
+  streamlit:
+    build:
+      context: ./streamlit
+      dockerfile: Dockerfile
+    container_name: streamlit-app
+    restart: always
+    ports:
+      - "8501:8501"
+    depends_on:
+     - api
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
